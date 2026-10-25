@@ -1,0 +1,19 @@
+# MATLAB / Simulink build and cache files
+slprj/
+*.slxc
+*.asv
+*.autosave
+*.mexw64
+*.mex*
+codegen/
+
+# Simulink backups
+*.slx.r20*
+*.original
+
+# Recorded bench logs (created by bench/fc_record)
+bench/logs/
+
+# OS
+Thumbs.db
+.DS_Store
