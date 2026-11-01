@@ -11,6 +11,11 @@ A quadcopter flight simulator I built in MATLAB and Simulink: the flight physics
 
 <!-- DEMO: screen recording of the simulator -->
 
+
+https://github.com/user-attachments/assets/ca8c6891-5138-433d-b4ad-3fa0a60e7f34
+
+
+
 ## Highlights
 
 - **Full flight physics:** 6 degrees of freedom, motor lag, drag, wind, and a spray tank that makes the drone lighter as it empties.
