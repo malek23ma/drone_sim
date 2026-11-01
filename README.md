@@ -75,6 +75,7 @@ To fly it yourself, press **Manual fly** on the panel, then click the 3D window.
 |---|---|
 | Physics | 6-DOF rigid body, quadratic drag, mass changing from 2.18 to 1.80 kg |
 | Motors | Quad-X, first-order lag (20 ms), speed limit 970 rad/s |
+| Power | Motor current from the motor constants, battery drain and flight time (9.2 A per motor at hover, about 6.5 min usable), shown live on the 3D gauge |
 | Control | Cascaded PID with feedforward (gains by pole placement), full-state LQR |
 | Estimation | GPS and thrust model for position and velocity, gyro and AHRS for attitude |
 | Inputs | Step, circle or field path; keyboard or gamepad; wind; spray pump |
@@ -122,7 +123,7 @@ A particle swarm (20 particles, 30 iterations) and a genetic algorithm (populati
 <details>
 <summary><b>Limitations</b></summary>
 
-- The battery model is written and tested but not connected to the Simulink model.
+- Battery voltage sag is not fed back into the motors yet: the thrust limit stays the same as the pack drains, and the controller does not compensate for it.
 - Parameters come from datasheets and estimates, not from measurements of the real aircraft.
 
 </details>
