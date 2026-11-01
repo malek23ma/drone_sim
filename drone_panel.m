@@ -191,7 +191,7 @@ function gps_cb(src,~)
     P = evalin('base','P');  P.fault.gps.on = get(src,'Value')==1;
     if P.fault.gps.on, set(src,'String','GPS: DROPPED','BackgroundColor',[0.95 0.5 0.5]);
     else,             set(src,'String','GPS: OK','BackgroundColor',[0.60 0.88 0.60]); end
-    assignin('base','P',P);
+    push_faults(P);
 end
 function motor_cb(src,~)
     P = evalin('base','P');  P.fault.motor.on = get(src,'Value')==1;
@@ -202,7 +202,18 @@ function motor_cb(src,~)
         P.fault.motor.scale = [1;1;1;1];
         set(src,'String','Motor M1: healthy','BackgroundColor',[0.60 0.88 0.60]);
     end
+    push_faults(P);
+end
+function push_faults(P)
+%PUSH_FAULTS  Store P and refresh a running model, so the blocks that read the
+%   fault flags as constants (GPS dropout, rotor scale) switch mid-flight.
     assignin('base','P',P);
+    try
+        if ~strcmp(get_param('drone_plant','SimulationStatus'),'stopped')
+            set_param('drone_plant','SimulationCommand','update');
+        end
+    catch
+    end
 end
 function wind_cb(src,f)
     P = evalin('base','P');  F = get(src,'Value');
@@ -234,7 +245,7 @@ function reset_faults(f)
     P = evalin('base','P');
     P.spray.joy = 0;  P.fault.gps.on = 0;  P.fault.motor.on = 0;  P.fault.motor.scale = [1;1;1;1];
     P.wind.mode = 'none';  P.wind.F = [0;0;0];
-    assignin('base','P',P);  reset_controls(f);
+    push_faults(P);  reset_controls(f);
 end
 function reset_gains(f)
     P = evalin('base','P');

@@ -17,6 +17,7 @@ A quadcopter flight simulator I built in MATLAB and Simulink: the flight physics
 - **Two controllers, switchable in flight:** cascaded PID and LQR. LQR reaches the target 44 % sooner.
 - **Auto-tuning:** a hand-written particle swarm and a genetic algorithm tune the PID gains.
 - **Flies on estimated data, like a real drone:** the controller only sees noisy GPS, gyro and attitude through an observer. Position error 1.4 cm RMS.
+- **Fault injection:** GPS dropout and a weak motor, switched on mid-flight from the panel.
 - **16 automated tests:** for example, free fall matches the textbook formula to 3.6e-15 m.
 - **Fly it yourself:** keyboard or gamepad control and a live 3D view.
 
@@ -57,7 +58,8 @@ Needs MATLAB and Simulink R2026a or newer, with the Control System Toolbox.
 ```matlab
 open_system('drone_plant')   % loads the parameters
 run_all                      % the 16 tests, a few minutes
-drone_panel                  % control panel: missions, PID/LQR switch, live gains
+drone_panel                  % control panel: missions, PID/LQR switch, faults, live gains
+record_mission               % saves the field mission as field_mission.mp4
 ```
 
 To fly it yourself, press **Manual fly** on the panel, then click the 3D window. Arrows move, W / S go up and down, A / D turn, Space toggles the spray.
@@ -118,7 +120,6 @@ A particle swarm (20 particles, 30 iterations) and a genetic algorithm (populati
 <details>
 <summary><b>Limitations</b></summary>
 
-- The GPS-dropout and motor-fault switches only work in the MATLAB loops, not in the Simulink model yet.
 - The battery model is written and tested but not connected to the Simulink model.
 - Parameters come from datasheets and estimates, not from measurements of the real aircraft.
 
@@ -136,6 +137,7 @@ A particle swarm (20 particles, 30 iterations) and a genetic algorithm (populati
 | `test_*.m`, `run_all.m` | tests |
 | `pso_tune_pid.m`, `ga_tune_pid.m`, `ctrl_cost.m` | auto-tuning |
 | `drone_panel.m`, `drone_keys.m` | control panel, keyboard flying |
+| `record_mission.m` | records the field mission to MP4 |
 | `bench/` | tools that run the same tests against a real flight controller |
 
 </details>

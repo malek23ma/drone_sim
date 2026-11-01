@@ -191,6 +191,7 @@ P.traj.h    = 2;                      % circle altitude [m]
 P.pilot.on      = 0;          % 0 = auto trajectory (default) | 1 = manual control
 P.pilot.src     = 0;          % manual source: 0 = on-screen sliders | 1 = gamepad
 P.viz.on        = 0;          % live 3D window: 0 = off (tests) | 1 = on (any flight/mission)
+P.viz.cam       = 'chase';    % 3D camera: 'chase' follows the drone | 'field' shows the whole field
 P.pilot.vmax_xy = 3;          % max commanded horizontal speed [m/s] (slider range)
 P.pilot.vmax_z  = 2;          % max commanded climb speed [m/s]
 P.pilot.rmax    = 1;          % max commanded yaw rate [rad/s]
@@ -232,8 +233,10 @@ P.spray.joy    = 0;           % live manual spray toggle (set by joystick button
 P.spray.cone_ang = 12;        % viz: spray cone half-angle [deg] (footprint grows with height)
 
 %% ---- Fault injection (robustness scenarios; all default OFF) ------------------
-% Live toggles: set the flag then  assignin('base','P',P)  mid-sim to inject.
-% Read by sensors_islfcn (GPS) and forces_islfcn (motors); no model rewiring.
+% Live toggles: set the flag, assignin('base','P',P), then
+% set_param('drone_plant','SimulationCommand','update')  (drone_panel does this).
+% In Simulink they drive the 'GPS hold' switch (Sensors) and 'rotor scale' (Forces)
+% blocks; the MATLAB loops use sensors_islfcn / forces_islfcn.
 P.fault.gps.on      = 0;            % 1 = GPS dropout: estimator gets a FROZEN fix
                                     %     (last good position held) -> dead-reckon drift
 P.fault.motor.on    = 0;            % 1 = apply per-rotor thrust scale (partial failure)
