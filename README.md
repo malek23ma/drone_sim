@@ -18,13 +18,13 @@ A quadcopter flight simulator I built in MATLAB and Simulink: the flight physics
 - **Auto-tuning:** a hand-written particle swarm and a genetic algorithm tune the PID gains.
 - **Flies on estimated data, like a real drone:** the controller only sees noisy GPS, gyro and attitude through an observer. Position error 1.4 cm RMS.
 - **16 automated tests:** for example, free fall matches the textbook formula to 3.6e-15 m.
-- **Fly it yourself:** gamepad control and a live 3D view.
+- **Fly it yourself:** keyboard or gamepad control and a live 3D view.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    REF[Path or gamepad] --> CTRL[Controller<br/>PID or LQR]
+    REF[Path, keyboard<br/>or gamepad] --> CTRL[Controller<br/>PID or LQR]
     CTRL --> MOT[Motors]
     MOT --> PHY[Drone physics]
     WIND[Wind] --> PHY
@@ -60,6 +60,8 @@ run_all                      % the 16 tests, a few minutes
 drone_panel                  % control panel: missions, PID/LQR switch, live gains
 ```
 
+To fly it yourself, press **Manual fly** on the panel, then click the 3D window. Arrows move, W / S go up and down, A / D turn, Space toggles the spray.
+
 ## Details
 
 <details>
@@ -71,7 +73,7 @@ drone_panel                  % control panel: missions, PID/LQR switch, live gai
 | Motors | Quad-X, first-order lag (20 ms), speed limit 970 rad/s |
 | Control | Cascaded PID with feedforward (gains by pole placement), full-state LQR |
 | Estimation | GPS and thrust model for position and velocity, gyro and AHRS for attitude |
-| Inputs | Step, circle or field path; gamepad; wind; spray pump |
+| Inputs | Step, circle or field path; keyboard or gamepad; wind; spray pump |
 | Solver | Fixed step, 2 ms |
 
 </details>
@@ -133,7 +135,7 @@ A particle swarm (20 particles, 30 iterations) and a genetic algorithm (populati
 | `*_islfcn.m` | functions used by the Simulink blocks |
 | `test_*.m`, `run_all.m` | tests |
 | `pso_tune_pid.m`, `ga_tune_pid.m`, `ctrl_cost.m` | auto-tuning |
-| `drone_panel.m` | control panel |
+| `drone_panel.m`, `drone_keys.m` | control panel, keyboard flying |
 | `bench/` | tools that run the same tests against a real flight controller |
 
 </details>

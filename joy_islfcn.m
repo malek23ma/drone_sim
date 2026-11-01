@@ -1,5 +1,5 @@
 function cmd = joy_islfcn(psi)
-%JOY_ISLFCN  Read a gamepad (PS4/DualShock) -> BODY-FRAME velocity commands.
+%JOY_ISLFCN  Read the keyboard and/or a gamepad -> BODY-FRAME velocity commands.
 %   Interpreted MATLAB Function block.
 %   Input  psi = current drone yaw [rad]  (wire the state's yaw, element 9, here --
 %               NOT the Clock).  Used to fly relative to the nose.
@@ -8,8 +8,12 @@ function cmd = joy_islfcn(psi)
 %   Pitch = forward along the NOSE; roll = the drone's right. Rotating the airframe
 %   re-aims "forward", so it flies like a real pilot's-eye drone.
 %
-%   Robust to drop-outs: on a sleep/glitch it outputs NEUTRAL (hover) and silently
-%   reconnects. Only reads hardware when P.pilot.on = 1.
+%   Keyboard (keys held in the 3D window, see drone_keys): arrows move, W/S climb,
+%   A/D yaw, Space sprays. Keys are on/off, so they ramp in over ~0.15 s. A gamepad,
+%   when plugged in, adds on top; the sum is clipped to the pilot limits.
+%
+%   Robust to drop-outs: on a sleep/glitch the gamepad reads NEUTRAL and silently
+%   reconnects. Only reads input when P.pilot.on = 1.
 %
 %   PERF: the HID poll (axis(joy)) is a slow blocking USB read. At the 500 Hz
 %   solver step it dominates wall-clock and breaks real-time. We poll only every
@@ -17,7 +21,7 @@ function cmd = joy_islfcn(psi)
 %   recompute the body->world yaw rotation EVERY step with the live psi (cheap
 %   trig) so heading response stays crisp. P is also refreshed at the poll rate
 %   instead of every step.
-    persistent joy retry tick body Pc btnprev sprayst
+    persistent joy retry tick body Pc btnprev sprayst kb
     cmd = zeros(4,1);
 
     if isempty(tick), tick = 0; end
@@ -29,11 +33,21 @@ function cmd = joy_islfcn(psi)
     if do_poll, Pc = evalin('base','P'); end       % refresh params at 50 Hz, not 500 Hz
     P = Pc;
     if isempty(P) || ~isfield(P,'pilot') || ~P.pilot.on
-        body = [];                                 % reset hold so it re-arms cleanly next enable
+        body = [];  kb = [];                       % reset hold so it re-arms cleanly next enable
         return;
     end
 
     if do_poll
+        % ---- keyboard: held keys -> body axes, ramped (keys are on/off) ----
+        k   = drone_keys('read');
+        tgt = [(k.up - k.down)    * P.pilot.vmax_xy;   % Up/Down    -> forward/back
+               (k.right - k.left) * P.pilot.vmax_xy;   % Left/Right -> left/right
+               (k.w - k.s)        * P.pilot.vmax_z;    % W/S        -> climb/descend
+               (k.d - k.a)        * P.pilot.rmax];     % A/D        -> yaw
+        if isempty(kb), kb = zeros(4,1); end
+        kb  = kb + 0.12*(tgt - kb);                    % ~0.15 s time constant at 50 Hz
+        pad = zeros(4,1);
+
         if isempty(joy)
             if isempty(retry), retry = 250; end
             retry = retry + 1;
@@ -55,7 +69,7 @@ function cmd = joy_islfcn(psi)
                 right =  dzf(a(3),dz) * P.pilot.vmax_xy;   % RH right -> right   (roll)
                 clm   = -dzf(a(2),dz) * P.pilot.vmax_z;    % LV up    -> climb   (thrust)
                 yawr  =  dzf(a(1),dz) * P.pilot.rmax;      % LH right -> yaw
-                body  = [fwd; right; clm; yawr];           % hold until next poll
+                pad   = [fwd; right; clm; yawr];
             catch
                 joy = [];                                  % stick drop-out -> reconnect next poll
             end
@@ -80,9 +94,12 @@ function cmd = joy_islfcn(psi)
                 % ignore button-read errors; sticks keep working
             end
         end
+
+        lim  = [P.pilot.vmax_xy; P.pilot.vmax_xy; P.pilot.vmax_z; P.pilot.rmax];
+        body = max(-lim, min(lim, kb + pad));          % hold until next poll
     end
 
-    if isempty(body), return; end                  % not connected yet -> hover
+    if isempty(body), return; end                  % no input yet -> hover
 
     % ---- body -> world: rotate forward/right by CURRENT yaw every step ----
     c = cos(psi);  s = sin(psi);

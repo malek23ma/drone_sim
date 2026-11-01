@@ -23,10 +23,12 @@ function dummy = viz_islfcn(in)
     if isempty(H) || ~isfield(H,'fig') || ~ishandle(H.fig)
         H = local_init();  trail = zeros(0,3);  lastDraw = -inf;  CM = [];  wet = zeros(0,2);
         crashed = false;  batt_used = 0;  tank_used = 0;
+        set(H.keys,'Visible',onoff(P.pilot.on));
     elseif newsim
         trail = zeros(0,3);  lastDraw = -inf;  CM = [];  wet = zeros(0,2);
         crashed = false;  batt_used = 0;  tank_used = 0;
         set(H.banner,'Visible','off');
+        set(H.keys,'Visible',onoff(P.pilot.on));
     end
 
     % ---- ground contact: latch, banner, stop the sim (runs every step) ----
@@ -171,6 +173,7 @@ end
 
 function H = local_init()
     H.fig = figure('Name','Quad - live flight','NumberTitle','off','Color','w');
+    drone_keys('attach', H.fig);             % fly with the keyboard while this window has focus
     H.ax  = axes('Parent',H.fig); hold(H.ax,'on'); grid(H.ax,'on');
     daspect(H.ax,[1 1 1]);
     view(H.ax,-20,22);                       % North = away, East = right, Up = up
@@ -208,6 +211,14 @@ function H = local_init()
         'FontSize',10,'FontWeight','bold','VerticalAlignment','top', ...
         'HorizontalAlignment','center','Color',[0 0 0.35], ...
         'BackgroundColor',[0.96 0.96 0.96],'EdgeColor',[0.7 0.7 0.7],'Margin',4);
+    H.keys   = uicontrol(H.fig,'Style','text','Units','normalized','Position',[0 0 1 0.04], ...
+        'String','Arrows: move     W / S: up / down     A / D: turn     Space: spray', ...
+        'FontSize',10,'BackgroundColor',[0.96 0.96 0.96],'ForegroundColor',[0.2 0.2 0.2], ...
+        'Enable','inactive','Visible','off');   % manual-mode key hint
+end
+
+function s = onoff(tf)
+    if tf, s = 'on'; else, s = 'off'; end
 end
 
 function s = local_is_spraying(P, t)
