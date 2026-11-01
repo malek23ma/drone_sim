@@ -7,14 +7,11 @@
 
 A quadcopter flight simulator I built in MATLAB and Simulink: the flight physics, two controllers (PID and LQR), noisy sensors and a state estimator. Every part is checked against a known answer before the next one is added.
 
-![Simulink model, top level](docs/img/simulink_model.png)
-
-<!-- DEMO: screen recording of the simulator -->
-
-
 https://github.com/user-attachments/assets/ca8c6891-5138-433d-b4ad-3fa0a60e7f34
 
+*Autonomous spray mission with LQR: five passes over a 16 × 24 m field, 100 % coverage, 16 % of the tank left. Real speed.*
 
+![Simulink model, top level](docs/img/simulink_model.png)
 
 ## Highlights
 
