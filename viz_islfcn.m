@@ -90,8 +90,14 @@ function dummy = viz_islfcn(in)
     if size(trail,1) > 3000, trail(1,:) = []; end
     set(H.trail,'XData',trail(:,1),'YData',trail(:,2),'ZData',trail(:,3));
 
-    xlim(H.ax, C(1)+[-10 10]);  ylim(H.ax, C(2)+[-10 10]);  zlim(H.ax,[0 max(7, C(3)+3)]);
-    title(H.ax, sprintf('t = %.1f s     altitude = %.2f m', t, -pos(3)));
+    if isfield(P.viz,'cam') && strcmp(P.viz.cam,'field')      % fixed view of the whole field
+        f = P.field;
+        xlim(H.ax, f.corner(2) + [-3, f.W+3]);  ylim(H.ax, f.corner(1) + [-3, f.Lp+3]);
+        zlim(H.ax, [0 7]);
+    else                                                      % chase camera
+        xlim(H.ax, C(1)+[-10 10]);  ylim(H.ax, C(2)+[-10 10]);  zlim(H.ax,[0 max(7, C(3)+3)]);
+    end
+    title(H.ax, sprintf('%s     t = %.1f s     altitude = %.2f m', upper(P.ctrl.mode), t, -pos(3)));
 
     % ---- cockpit gauges: altitude, speed, battery SoC, tank ----
     dtb   = min(dt, 0.1);                                  % clamp (frame 1 dt = inf)
@@ -169,11 +175,49 @@ function dummy = viz_islfcn(in)
     end
 
     drawnow limitrate;
+    local_rec(H, CM, t);
+end
+
+function local_rec(H, CM, t)
+%LOCAL_REC  Append frames to the video started by record_mission: 3D view on the
+%   left, coverage map on the right. Frames follow SIM time (duplicated when the
+%   draw rate falls behind), so the video plays at real speed.
+    rec = getappdata(groot,'drone_rec');
+    if isempty(rec), return; end
+    nwant = floor(t*rec.fps) + 1;                     % frames that should exist by now
+    if rec.n >= nwant, return; end
+    drawnow;
+    F = getframe(H.fig);  img = imresize(F.cdata, rec.size3d);
+    if ~isempty(CM) && ishandle(CM.fig)
+        F = getframe(CM.fig);  map = imresize(F.cdata, rec.sizemap);
+    else
+        map = 255*ones([rec.sizemap 3],'uint8');
+    end
+    frame = [img, map];
+    while rec.n < nwant
+        writeVideo(rec.vw, frame);  rec.n = rec.n + 1;
+    end
+    setappdata(groot,'drone_rec',rec);
+end
+
+function local_place(fig, field)
+%LOCAL_PLACE  While recording, give the window a fixed size so every frame matches.
+    rec = getappdata(groot,'drone_rec');
+    if isempty(rec), return; end
+    set(fig,'WindowStyle','normal','Units','pixels','Position',rec.(field));
+end
+
+function light_theme(fig)
+%LIGHT_THEME  Keep the plots light even when MATLAB runs in dark mode (legends
+%   and titles would otherwise turn dark on the white figure).
+    if isprop(fig,'Theme'), fig.Theme = 'light'; end
 end
 
 function H = local_init()
     H.fig = figure('Name','Quad - live flight','NumberTitle','off','Color','w');
     drone_keys('attach', H.fig);             % fly with the keyboard while this window has focus
+    local_place(H.fig, 'pos3d');
+    light_theme(H.fig);
     H.ax  = axes('Parent',H.fig); hold(H.ax,'on'); grid(H.ax,'on');
     daspect(H.ax,[1 1 1]);
     view(H.ax,-20,22);                       % North = away, East = right, Up = up
@@ -204,7 +248,7 @@ function H = local_init()
     H.tgt    = plot3(H.ax,0,0,0,'p','MarkerFaceColor','r','MarkerEdgeColor','r', ...
                      'MarkerSize',9,'LineStyle','none');
     legend(H.ax,[H.trail H.tgt H.nose],{'flown path','target','nose (heading)'}, ...
-           'Location','northeast','AutoUpdate','off');
+           'Location','east','AutoUpdate','off');      % clear of the gauge bar on top
     H.banner = text(H.ax, 0.5, 0.90, '', 'Units','normalized','FontSize',22, ...
         'FontWeight','bold','HorizontalAlignment','center','Color','r','Visible','off');
     H.gauge  = text(H.ax, 0.5, 0.995, '', 'Units','normalized','FontName','Consolas', ...
@@ -248,6 +292,8 @@ function C = local_cov_init(P)
     C.dryPt    = [];                                        % where tank ran dry
 
     C.fig = figure('Name','Spray coverage map','NumberTitle','off','Color','w');
+    local_place(C.fig, 'posmap');
+    light_theme(C.fig);
     C.ax  = axes('Parent',C.fig);  hold(C.ax,'on');  box(C.ax,'on');
     C.img = imagesc(C.ax, Ec, Nc, zeros(size(C.E)));
     set(C.ax,'YDir','normal','Layer','top');

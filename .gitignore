@@ -17,3 +17,6 @@ bench/logs/
 # OS
 Thumbs.db
 .DS_Store
+
+# demo videos (uploaded to GitHub separately)
+*.mp4
