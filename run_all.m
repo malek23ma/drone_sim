@@ -8,6 +8,7 @@ function run_all()
 %   Tests 3-12 require drone_plant.slx to be built and on the path.
 
     close all;                            % clear figures from previous runs first
+    evalin('base','model_params;');       % also puts tests/, blocks/, core/ on the path
 
     tests = { ...
         'test_2a_translational'   ; 'test_2b_rotational'      ; ...

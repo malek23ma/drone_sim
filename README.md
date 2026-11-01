@@ -133,13 +133,15 @@ A particle swarm (20 particles, 30 iterations) and a genetic algorithm (populati
 | Path | Contents |
 |---|---|
 | `drone_plant.slx` | Simulink model |
-| `model_params.m` | all parameters and gains |
-| `quad_plant.m` | the flight physics |
-| `*_islfcn.m` | functions used by the Simulink blocks |
-| `test_*.m`, `run_all.m` | tests |
-| `pso_tune_pid.m`, `ga_tune_pid.m`, `ctrl_cost.m` | auto-tuning |
-| `drone_panel.m`, `drone_keys.m` | control panel, keyboard flying |
+| `model_params.m` | all parameters and gains; also sets up the MATLAB path |
+| `run_all.m` | runs the tests |
+| `drone_panel.m` | control panel |
 | `record_mission.m` | records the field mission to MP4 |
+| `blocks/` | functions behind the Simulink blocks |
+| `core/` | flight physics (`quad_plant.m`), field path, motor model, keyboard input |
+| `tests/` | the tests |
+| `tuning/` | particle swarm and genetic algorithm PID tuning |
+| `tools/` | fault panel, robustness demos, figure export |
 | `bench/` | tools that run the same tests against a real flight controller |
 
 </details>

@@ -33,6 +33,12 @@
 %   omega = [p;  q;  r]    body rates  [rad/s]
 % =============================================================================
 
+%% ---- MATLAB path: block functions, shared code, tests, tuning, tools ----
+mp_root = fileparts(mfilename('fullpath'));
+addpath(fullfile(mp_root,'blocks'), fullfile(mp_root,'core'), fullfile(mp_root,'tests'), ...
+        fullfile(mp_root,'tuning'), fullfile(mp_root,'tools'));
+clear mp_root;
+
 clear P;
 
 %% ---- Force light/white figure theme for ALL plots (override dark theme) ----

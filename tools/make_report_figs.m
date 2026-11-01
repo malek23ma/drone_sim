@@ -7,7 +7,7 @@ function make_report_figs()
 %   Usage:  >> make_report_figs
 %   Output: figs/*.png and figs/*.svg, ready to drop into the report and deck.
 
-    here = fileparts(mfilename('fullpath'));
+    here = fileparts(fileparts(mfilename('fullpath')));   % repo root (this file is in tools/)
     figdir = fullfile(here,'figs');
     if ~exist(figdir,'dir'), mkdir(figdir); end
     evalin('base','clear');               % clean base so model_params is fresh

@@ -13,7 +13,7 @@ function hil_run(port, Tend)
     if nargin < 2, Tend = 20; end
     here = fileparts(mfilename('fullpath'));
     root = fileparts(here);
-    addpath(root);                           % quad_plant.m lives in sim root
+    addpath(root);                           % model_params adds core/ (quad_plant.m)
     run(fullfile(root, 'model_params.m'));   % P
 
     sp = fc_open(port);

@@ -13,7 +13,7 @@ function sil_cascade()
 %   fw gyro = [p, -q, -r] in dps  (see sensor_synth.m).
     here = fileparts(mfilename('fullpath'));
     root = fileparts(here);
-    addpath(root);                           % quad_plant.m lives in sim root
+    addpath(root);                           % model_params adds core/ (quad_plant.m)
     run(fullfile(root, 'model_params.m'));   % populates P
 
     %% ---------- static sign check ----------
